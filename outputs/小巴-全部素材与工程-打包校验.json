@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "archive": "C:\\Users\\cwrt\\Documents\\Codex\\2026-10-18\\pets-plugin-work-pets-openai-curated-2\\outputs\\小巴-全部素材与工程-20261022.zip",
+  "files": 186,
+  "generated_history_images": 10,
+  "bytes": 40858238,
+  "megabytes": 38.97,
+  "sha256": "0cdba264d8256a07ea7f4f2ebd16bdb130295081b180daf24a8a012433c5f51b",
+  "checks": [
+    "ZIP CRC",
+    "complete entry list",
+    "all file SHA-256 hashes"
+  ]
+}

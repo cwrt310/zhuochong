@@ -1,0 +1,5 @@
+# Xiaoba look mechanics
+
+The lower torso, coat hem, held core ball and shoes stay anchored in a front-facing stance. The separate head naturally pitches up/down and yaws gently toward the viewer's right/left; blue bows and upper hair follow the head. Long lower hair follows slightly and never changes sides. Eyes retain their original blue irises, pupils, white sclera, lids and highlights. Pupils rotate together with the head and face. The nose tip and visible cheek contour shift with yaw. Up reveals a little more chin and lower sclera, down lowers the chin and upper lids; both must remain obvious at pet size. Never lose the face, turn the whole body, rotate the sprite, detach accessories, or replace the eyes. The held ball remains opaque and connected to both hands.
+
+Viewer coordinates and clockwise order: up, up-right, right, down-right, down, down-left, left, up-left. Cardinal head yaw is moderate enough to keep both blue eyes visible, but pupils and nose must unmistakably aim toward the correct image edge. Intermediate poses gradually combine horizontal yaw and vertical pitch.

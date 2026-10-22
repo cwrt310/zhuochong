@@ -1,0 +1,19 @@
+{
+  "name": "小巴",
+  "asset": "waving preview revision2",
+  "frames": 4,
+  "cellWidth": 192,
+  "cellHeight": 208,
+  "durationsMs": [
+    140,
+    140,
+    140,
+    280
+  ],
+  "generationMode": "built-in imagegen",
+  "prompt": "prompts/waving-polish-v2-two-ref.md",
+  "structuralValidation": "waving-v2-validation.json",
+  "visualQA": "pass",
+  "reviewLimitations": "Independent reviewer assessed ordered frame sheets, not playback timing.",
+  "installationStatus": "not installed; user requested focus on waving first"
+}

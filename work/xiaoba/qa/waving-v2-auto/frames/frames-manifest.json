@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "chroma_key": {
+    "hex": "#00FF00",
+    "rgb": [
+      0,
+      255,
+      0
+    ],
+    "threshold": 96.0
+  },
+  "rows": [
+    {
+      "state": "waving",
+      "frames": [
+        "C:\\Users\\cwrt\\Documents\\Codex\\2026-10-18\\pets-plugin-work-pets-openai-curated-2\\work\\xiaoba\\qa\\waving-v2-auto\\frames\\waving\\00.png",
+        "C:\\Users\\cwrt\\Documents\\Codex\\2026-10-18\\pets-plugin-work-pets-openai-curated-2\\work\\xiaoba\\qa\\waving-v2-auto\\frames\\waving\\01.png",
+        "C:\\Users\\cwrt\\Documents\\Codex\\2026-10-18\\pets-plugin-work-pets-openai-curated-2\\work\\xiaoba\\qa\\waving-v2-auto\\frames\\waving\\02.png",
+        "C:\\Users\\cwrt\\Documents\\Codex\\2026-10-18\\pets-plugin-work-pets-openai-curated-2\\work\\xiaoba\\qa\\waving-v2-auto\\frames\\waving\\03.png"
+      ],
+      "method": "components"
+    }
+  ]
+}

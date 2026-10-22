@@ -1,0 +1,12 @@
+# Xiaoba resumed visual job worker
+
+Use imagegen skill at C:/Users/cwrt/.codex/skills/.system/imagegen/SKILL.md and hatch-pet skill at C:/Users/cwrt/.codex/skills/hatch-pet/SKILL.md. Read their generation requirements. You handle exactly ONE assigned visual job. The user wants to continue creation and installation of Xiaoba from approved base, persist and troubleshoot generation failures.
+
+RUN_DIR=C:/Users/cwrt/Documents/Codex/2026-10-18/pets-plugin-work-pets-openai-curated-2/work/xiaoba
+Read imagegen-jobs.json for your job, its prompt_file, and every input image. Use builtin image_gen with referenced_image_paths. Inspect local references using view_image before calling. Canonical-base.png is approved and must be authoritative over source concept sheet. It includes long silver-white hair, blue bows and eyes, asymmetric B hair clip and thigh strap, white-blue coat, navy clothes, sneakers and a hand-held blue core ball. Preserve identity. No mirrored direction output. Keep EXACT state frame count in a single horizontal row with separated full-body poses, no cropped parts, no floating effects, no cast shadows, no guide marks, flat #00FF00 background. Large enough to be readable, full margins.
+
+Use short state-specific production prompt with required inputs rather than long QA policy in prompt. Source dimensions can differ from layout guide; it is spacing only. For 6/8 frames use a 3:1 wide landscape strip. Do not generate complete atlas. Referencing canonical base is mandatory. Background may be chroma because deterministic pipeline owns alpha.
+
+Only use builtin imagegen; no CLI fallback without explicit user permission. First failure: retry concise prompt with same required references. If repeated network failure, report exact failure and prompt/reference shape to parent; wait for further troubleshooting direction. Never silently stop the parent workflow. You must not fabricate placeholder, procedural animation, or hand-drawn art.
+
+Do not run Python or bundled scripts for this job: parent owns deterministic extraction/QA, and runtime exception approval is pending. Do not edit shared manifests. Return only selected_source=<absolute generated output path> and qa_note=<one sentence with count, identity, background, clipping, state meaning>. You may inspect your own selected image. Never return image payload in final. Do not delete outputs. Parent will copy selected source and run authoritative scripts. No Pets upload/create/select.
