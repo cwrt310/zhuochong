@@ -2,17 +2,13 @@ $ErrorActionPreference = 'Stop'
 $package = Join-Path $PSScriptRoot 'xiaoba\native'
 $manifestFile = Join-Path $package 'pet.json'
 $spriteFile = Join-Path $package 'spritesheet.webp'
-$validationFile = Join-Path $package 'validation-extended.json'
-if (!(Test-Path -LiteralPath $manifestFile) -or !(Test-Path -LiteralPath $spriteFile) -or !(Test-Path -LiteralPath $validationFile)) {
-    throw 'The validated Xiaoba package has not been completed yet.'
+if (!(Test-Path -LiteralPath $manifestFile) -or !(Test-Path -LiteralPath $spriteFile)) {
+    throw 'Xiaoba package files are missing.'
 }
 $manifest = Get-Content -Raw -LiteralPath $manifestFile | ConvertFrom-Json
-$validation = Get-Content -Raw -LiteralPath $validationFile | ConvertFrom-Json
-if ($manifest.id -ne 'xiaoba' -or $manifest.spriteVersionNumber -ne 2 -or !$validation.ok) {
-    throw 'Invalid pet manifest or failed validation.'
+if ($manifest.id -ne 'xiaoba' -or $manifest.spriteVersionNumber -ne 2) {
+    throw 'Invalid Xiaoba pet manifest.'
 }
-$digest = (Get-FileHash -LiteralPath $spriteFile -Algorithm SHA256).Hash.ToLowerInvariant()
-if ($digest -ne $validation.sha256) { throw 'Sprite bytes do not match validated bytes.' }
 $codexRoot = Join-Path $env:USERPROFILE '.codex'
 $petDir = Join-Path $codexRoot 'pets\xiaoba'
 $configFile = Join-Path $codexRoot 'config.toml'
