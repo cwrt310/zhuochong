@@ -1,0 +1,210 @@
+<div id="xiaoba-motion-picker">
+  <label class="form-label" for="xiaoba-motion-choice">动作</label>
+  <select class="form-select" id="xiaoba-motion-choice" data-action disabled></select>
+  <div class="motion-poses">
+    <figure><canvas width="88" height="95" data-native role="img" aria-label="原生候选"></canvas><figcaption>原生候选</figcaption></figure>
+    <figure><canvas width="88" height="95" data-smooth role="img" aria-label="顺滑版"></canvas><figcaption>顺滑版</figcaption></figure>
+  </div>
+  <label class="form-label" for="xiaoba-motion-rate">顺滑版速度 <output class="tabular-nums" data-rate for="xiaoba-motion-rate">1×</output></label>
+  <div class="motion-controls">
+    <input class="form-range" type="range" id="xiaoba-motion-rate" min="0.5" max="1.2" step="0.05" value="1" data-speed disabled>
+    <button type="button" class="btn" data-replay disabled>播放</button>
+  </div>
+  <div class="text-destructive" role="alert" data-error hidden>动作载入失败。</div>
+  <script type="application/json" data-motion>__MOTION_DATA__</script>
+</div>
+<style>
+#xiaoba-motion-picker{max-width:228px;margin-inline:auto;display:grid;gap:calc(var(--font-size-base)*.45);color:var(--foreground)}
+#xiaoba-motion-picker .motion-poses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--font-size-base)*.5)}
+#xiaoba-motion-picker figure{display:grid;justify-items:center;gap:calc(var(--font-size-base)*.3);margin:0}
+#xiaoba-motion-picker canvas{display:block;width:min(88px,100%);height:auto}
+#xiaoba-motion-picker .motion-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:calc(var(--font-size-base)*.5)}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('xiaoba-motion-picker');
+  const select = root.querySelector('[data-action]');
+  const speedControl = root.querySelector('[data-speed]');
+  const replay = root.querySelector('[data-replay]');
+  const readout = root.querySelector('[data-rate]');
+  const data = JSON.parse(root.querySelector('[data-motion]').textContent);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const [width, height] = data.size;
+  const nativeContext = root.querySelector('[data-native]').getContext('2d');
+  const smoothContext = root.querySelector('[data-smooth]').getContext('2d');
+  const scratch = document.createElement('canvas');
+  scratch.width = width;
+  scratch.height = height;
+  const scratchContext = scratch.getContext('2d');
+  const atlas = new Image();
+  const first = data.defaultMotion || 'waving';
+  let state = data.motions[first];
+  let speed = 1;
+  let ready = false;
+  let request = null;
+  let paused = false;
+  let previous = null;
+  let nativeTime = 0;
+  let smoothTime = 0;
+  let lastNative = -1;
+  let lastSmooth = -1;
+
+  for (const [id, value] of Object.entries(data.motions)) select.add(new Option(value.label, id));
+
+  function stamp(ctx, index, left, top) {
+    const [x, y, w, h] = data.rects[index];
+    ctx.drawImage(atlas, x, y, w, h, left, top, w, h);
+  }
+
+  function drawStride(shift) {
+    const stops = data.bob.stops;
+    smoothContext.clearRect(0, 0, width, height);
+    for (let index = 1; index < stops.length; index++) {
+      const [top, topWeight] = stops[index - 1];
+      const [bottom, bottomWeight] = stops[index];
+      const sourceTop = top - shift * topWeight;
+      const sourceBottom = bottom - shift * bottomWeight;
+      smoothContext.drawImage(scratch, 0, sourceTop, width, sourceBottom - sourceTop,
+        0, top, width, bottom - top);
+    }
+  }
+
+  function drawLean(angle) {
+    const {stops, pivot: [x, y]} = data.lean;
+    smoothContext.clearRect(0, 0, width, height);
+    for (let index = 1; index < stops.length; index++) {
+      const [top, topWeight] = stops[index - 1];
+      const [bottom, bottomWeight] = stops[index];
+      smoothContext.save();
+      smoothContext.beginPath();
+      smoothContext.rect(0, top, width, bottom - top);
+      smoothContext.clip();
+      smoothContext.translate(x, y);
+      smoothContext.rotate(angle * (topWeight + bottomWeight) / 2);
+      smoothContext.drawImage(scratch, -x, -y);
+      smoothContext.restore();
+    }
+  }
+
+  function show(native, smooth) {
+    if (lastNative !== native) {
+      nativeContext.clearRect(0, 0, width, height);
+      stamp(nativeContext, native, 0, 0);
+      lastNative = native;
+    }
+    if (lastSmooth !== smooth) {
+      const [patch, x, y, offset] = state.samples[smooth];
+      const moment = smooth * data.step;
+      const bob = state.bodyBob ? data.bob : null;
+      const shift = bob ? bob.amplitude * Math.sin(2 * Math.PI * moment / bob.period) : 0;
+      const lean = state.bodyLean ? data.lean : null;
+      const phase = lean ? Math.max(0, Math.min(1, (moment - lean.start) / lean.ease, (lean.end - moment) / lean.ease)) : 0;
+      const angle = phase ? lean.angle * phase * phase * (3 - 2 * phase) : 0;
+      const context = Math.abs(shift) > .005 || Math.abs(angle) > .0001 ? scratchContext : smoothContext;
+      context.clearRect(0, 0, width, height);
+      stamp(context, state.base, 0, offset);
+      if (patch !== -1) {
+        const [, , w, h] = data.rects[patch];
+        context.clearRect(x, y + offset, w, h);
+        stamp(context, patch, x, y + offset);
+      }
+      if (context === scratchContext) {
+        if (bob) drawStride(shift);
+        else drawLean(angle);
+      }
+      lastSmooth = smooth;
+    }
+  }
+
+  function tick(time) {
+    const elapsed = previous === null ? 0 : time - previous;
+    previous = time;
+    nativeTime += elapsed;
+    smoothTime += elapsed * speed;
+    const last = state.samples.length - 1;
+    const period = last * data.step;
+    const smoothRunning = smoothTime < period * (state.repetitions || 1);
+    const smooth = smoothRunning ? Math.floor((smoothTime % period) / data.step) : last;
+    const position = state.repeatNative && smoothRunning ? nativeTime % state.ends.at(-1) : nativeTime;
+    const native = state.ends.findIndex(end => position < end);
+    show(native === -1 ? state.rest : state.native[native], smooth);
+    request = native !== -1 || smoothRunning ? requestAnimationFrame(tick) : null;
+    if (request === null) replay.textContent = '重播';
+  }
+
+  function startPlayback() {
+    previous = null;
+    request = requestAnimationFrame(tick);
+    replay.textContent = '暂停';
+  }
+
+  function reset(play) {
+    if (request !== null) cancelAnimationFrame(request);
+    nativeTime = 0;
+    smoothTime = 0;
+    request = null;
+    paused = false;
+    replay.textContent = '播放';
+    lastNative = -1;
+    lastSmooth = -1;
+    if (ready) {
+      show(state.rest, 0);
+      if (play) startPlayback();
+    }
+  }
+
+  function setSpeed(value) {
+    const number = Number(value);
+    speed = Number.isFinite(number) && number >= .5 && number <= 1.2 ? Math.round(20 * number) / 20 : 1;
+    speedControl.value = String(speed);
+    readout.textContent = `${speed}×`;
+  }
+
+  function setState(id) {
+    if (!Object.hasOwn(data.motions, id)) return;
+    select.value = id;
+    state = data.motions[id];
+    reset(!reduced.matches);
+  }
+
+  function save() {
+    window.openai?.setWidgetState?.({modelContent:{motion:select.value, speed}})?.catch(() => {});
+  }
+
+  function restore(model) {
+    if (model?.speed !== undefined) setSpeed(model.speed);
+    if (model?.motion !== undefined && model.motion !== select.value) setState(model.motion);
+  }
+
+  select.value = first;
+  setSpeed(1);
+  restore(window.openai?.widgetState?.modelContent);
+  window.addEventListener('openai:set_globals', event => restore(event.detail?.globals?.widgetState?.modelContent));
+  document.addEventListener('visibilitychange', () => { previous = null; });
+  select.addEventListener('change', () => { setState(select.value); save(); });
+  replay.addEventListener('click', () => {
+    if (request !== null) {
+      cancelAnimationFrame(request);
+      request = null;
+      paused = true;
+      replay.textContent = '继续';
+    } else if (paused) {
+      paused = false;
+      startPlayback();
+    } else {
+      reset(true);
+    }
+  });
+  speedControl.addEventListener('input', () => setSpeed(speedControl.value));
+  speedControl.addEventListener('change', save);
+
+  atlas.src = data.image;
+  atlas.decode().then(() => {
+    ready = true;
+    select.disabled = speedControl.disabled = replay.disabled = false;
+    reset(!reduced.matches);
+  }).catch(() => {
+    root.querySelector('[data-error]').hidden = false;
+  });
+})();
+</script>
